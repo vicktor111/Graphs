@@ -3,6 +3,17 @@ from tkinter import Tk, Canvas
 
 WITH_LINES = "with lines"
 
+def create_num_float(num):
+    a = 0
+    b = 0
+    for i in range(num):
+        if b >= 9 :
+            a += 1
+            b = 0
+        else:
+            b += 1
+        yield f" {a}.{b} "
+
 
 class Graph:
 
@@ -24,11 +35,11 @@ class Graph:
                               width=width, height=height + 30)
         self.create_graph()
 
-    def write_lines(self, lengths: list[int, int],
+    def paint_lines(self, lengths: list[int, int],
                     locations: list[list, list]):
         canvas = self._canvas
         self._range_1 = lengths[1] / self.num_y
-        # Накреслення шкали на вісі абсис.
+        # Накреслення шкали на вісі ординат.
         for i in range(1, self.num_y):
             y = locations[1] - (self._range_1 * i)
             if y > 10:
@@ -37,19 +48,19 @@ class Graph:
                 canvas.create_line(locations[0], y,
                                    locations[0] + 5, y)
                 if self.type_graph == "with lines":
-
                     canvas.create_line(
                         locations[0], y, self._width, y,
                         fill=f"black")
                 canvas.create_text(locations[0] - 10, y, text=f"{i}")
             else:
                 break
-        # Накреслення шкали на вісі ординат.
+        # Накреслення шкали на вісі абсис.
+        special_num = create_num_float(self.num_x)
         for i in range(1, self.num_x):
             if self.more_nums == False:
                 x = locations[0] + (self._range_1 * i)
             else:
-                range_1 = 10
+                range_1 = 13
                 x = locations[0] + (range_1 * i)
             # Накреслення самих ліній.
             if x < lengths[0]:
@@ -58,7 +69,7 @@ class Graph:
                 canvas.create_line(x, locations[1], x,
                                    locations[1] + 5)
                 if self.more_nums == True:
-                    canvas.create_text(x, locations[1] + 10, text=f"{i}",
+                    canvas.create_text(x, locations[1] + 10, text=f"{next(special_num)}",
                                        font=('Helvetica 5 bold'))
                 else:
                     canvas.create_text(x, locations[1] + 10, text=f"{i}")
@@ -84,7 +95,7 @@ class Graph:
         length_line_y = self._height - 30
         length_line_x = self._width - 30
 
-        self.write_lines(
+        self.paint_lines(
             [length_line_x, length_line_y],
             [x0, y0])
         self.create_rectangle()
@@ -105,7 +116,7 @@ class Graph:
                         break
             else:
                 # Початкові кординати точок.
-                range_2 = 10
+                range_2 = 13
                 x = x0
                 # Розміщення точок на кординатній площині.
                 for i in range(len(y_coordinate)):
