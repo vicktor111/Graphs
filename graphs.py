@@ -3,11 +3,12 @@ from tkinter import Tk, Canvas
 
 WITH_LINES = "with lines"
 
+
 def create_num_float(num):
     a = 0
     b = 0
-    for i in range(num):
-        if b >= 9 :
+    for _ in range(num):
+        if b >= 9:
             a += 1
             b = 0
         else:
@@ -35,7 +36,7 @@ class Graph:
                               width=width, height=height + 30)
         self.create_graph()
 
-    def paint_lines(self, lengths: list[int, int],
+    def paint_scale(self, lengths: list[int, int],
                     locations: list[list, list]):
         canvas = self._canvas
         self._range_1 = lengths[1] / self.num_y
@@ -94,8 +95,7 @@ class Graph:
         y0 = self._height - 20
         length_line_y = self._height - 30
         length_line_x = self._width - 30
-
-        self.paint_lines(
+        self.paint_scale(
             [length_line_x, length_line_y],
             [x0, y0])
         self.create_rectangle()
@@ -168,6 +168,50 @@ class Graph:
     num_y: {self.num_x}."""
 
 
+class Graph_Сomparable(Graph):
+
+    def __init__(self, master, width, height, num_y,
+                 atributes: dict[str, list[int]]):
+        super().__init__(master, width, height, 0, num_y, atributes)
+
+    def create_marks(self):
+        atribute = self._atributes[0]
+        x0 = 20
+        y0 = self._height - 20
+        length_line_x = self._width - 30
+        self.paint_scale_y([x0, y0])
+        y_coordinate = atribute["value"]
+        x0 = 40
+        for i in range(len(y_coordinate)):
+            if x0 + (self._range_1 * i) < length_line_x:
+                # Накреслиння квадратів.
+                x = x0 + (80 * i)
+                self._canvas.create_rectangle(
+                    x,
+                    y0,
+                    x + 40,
+                    y0 - (self._range_1 * y_coordinate[i]),
+                    fill=atribute["color"][i])
+            else:
+                break
+
+    def paint_scale_y(self, locations):
+        canvas = self._canvas
+        length_line_y = self._height - 30
+        self._range_1 = length_line_y / self.num_y
+        # Накреслення шкали на вісі ординат.
+        for i in range(1, self.num_y):
+            y = locations[1] - (self._range_1 * i)
+            if y > 10:
+                canvas.create_line(locations[0], y,
+                                   locations[0] - 5, y)
+                canvas.create_line(locations[0], y,
+                                   locations[0] + 5, y)
+                canvas.create_text(locations[0] - 10, y, text=f"{i}")
+            else:
+                break
+
+
 if __name__ == '__main__':
     import math
     window = Tk()
@@ -175,8 +219,13 @@ if __name__ == '__main__':
     atribute_1 = {"name": "numbers",
                   "value": [(math.sqrt(i)) for i in range(1, 90)],
                   "color": "#3aaa34"}
-    window.geometry("200x200")
     graph = Graph(window, 1000, 500, 100, 30,
                   atribute_1, more_nums=True)
+
+    atribute = {"names": ["manye", "car", "houses"],
+                "value": [3, 4, 2],
+                "color": ["red", "green", "yellow"]}
+    graph_2 = Graph_Сomparable(window, 1000, 200, 5, atribute)
+    graph_2.place(100, 100)
     graph.pack()
     window.mainloop()
