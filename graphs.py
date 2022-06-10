@@ -15,6 +15,30 @@ def create_num_float(num):
             b += 1
         yield f" {a}.{b} "
 
+def create_scale(num_scales, numbers, max_1=10):
+    global result
+    # Математечний спосіб запису числа
+    def convert_nums(number):
+        text = str(number)
+        return 1 * 10 ** - (len(text) - 1)
+    max_num = max(numbers)
+    result = 0
+    scale = []
+    new_numbers = []
+    # Коли число більше за максимальне.
+    if max_num > max_1:
+        science_num = convert_nums(max_num)
+        for i in range(len(numbers)):
+            result = numbers[i] * science_num
+            new_numbers.append(result)
+    # Запис в список чисил для шкали.
+    for i in range(1, num_scales):
+        num = i * (10 ** (len(str(max_num))- 1))
+        scale.append(num)
+    if len(new_numbers) == 0:
+        return [scale, numbers]
+    else:
+        return [scale, new_numbers]
 
 class Attribute:
     def __init__(self, name, value, color):
@@ -47,6 +71,7 @@ class Graph:
         self._height = height
         self._width = width
         self._attributes = attributes
+        self.special_list = create_scale(num_y , attributes[0].value)
         self.num_y = num_y
         self.num_x = num_x
         self._canvas = Canvas(master, bg="#ffffff",
@@ -55,9 +80,11 @@ class Graph:
 
     def paint_scale(self, lengths: list[int, int],
                     locations: list[list, list]):
+        global special_list
         canvas = self._canvas
         self._range_1 = lengths[1] / self.num_y
         # Накреслення шкали на вісі ординат.
+        print(self.special_list)
         for i in range(1, self.num_y):
             y = locations[1] - (self._range_1 * i)
             if y > 10:
@@ -69,7 +96,7 @@ class Graph:
                     canvas.create_line(
                         locations[0], y, self._width, y,
                         fill=f"black")
-                canvas.create_text(locations[0] - 10, y, text=f"{i}")
+                canvas.create_text(locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
             else:
                 break
         # Накреслення шкали на вісі абсис.
@@ -118,7 +145,7 @@ class Graph:
         self.create_rectangle()
         # Візуалізація даних.
         for attribute in self._attributes:
-            y_coordinate = attribute.value
+            y_coordinate = self.special_list[1]
             if self.more_nums == False:
                 for i in range(len(y_coordinate) - 1):
                     if x0 + (self._range_1 * i) < length_line_x:
@@ -149,10 +176,7 @@ class Graph:
                     else:
                         break
 
-    def create_graph(self, special_command=None):
-        if special_command == "clear":
-            self._canvas = Canvas(self.master, bg="#ffffff",
-                                  width=self._width, height=self._height + 30)
+    def create_graph(self):
         # Довжини кордиатних прямих.
         height = self._height - 20
         width = self._width - 10
@@ -177,12 +201,12 @@ class Graph:
         self._canvas.place(x=10, y=20)
 
     def update(self, *new_attribute, clear=False,  x=10, y=20):
-        special_command = ''
         if clear:
             self._canvas.destroy()
-            special_command = "clear"
+            self._canvas = Canvas(self.master, bg="#ffffff",
+                                  width=self._width, height=self._height + 30)
         self._attributes = new_attribute
-        self.create_graph(special_command)
+        self.create_graph()
         self.place(x, y)
 
     def __repr__(self):
@@ -211,7 +235,7 @@ class Graph_Сomparable(Graph):
         length_line_x = self._width - 30
         self.paint_scale_y([x0, y0])
         # Накреслення поріваняльних прямокутників.
-        y_coordinate = attribute.value
+        y_coordinate = self.special_list[1]
         x0 = 40
         for i in range(len(y_coordinate)):
             if x0 + (self._range_1 * i) < length_line_x:
@@ -247,6 +271,7 @@ class Graph_Сomparable(Graph):
                                    locations[0] - 5, y)
                 canvas.create_line(locations[0], y,
                                    locations[0] + 5, y)
-                canvas.create_text(locations[0] - 10, y, text=f"{i}")
+                canvas.create_text(locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
             else:
                 break
+ 
