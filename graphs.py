@@ -1,8 +1,9 @@
+import random
+import module as mod
 from tkinter import Tk, Canvas
 
 
 WITH_LINES = "with lines"
-
 
 def create_num_float(num):
     a = 0
@@ -16,11 +17,9 @@ def create_num_float(num):
         yield f" {a}.{b} "
 
 def create_scale(num_scales, numbers, max_1=10):
-    global result
     # Математечний спосіб запису числа
     def convert_nums(number):
-        text = str(number)
-        return 1 * 10 ** - (len(text) - 1)
+        return 10 ** - (len(str(int(number))) - 1)
     max_num = max(numbers)
     result = 0
     scale = []
@@ -33,12 +32,13 @@ def create_scale(num_scales, numbers, max_1=10):
             new_numbers.append(result)
     # Запис в список чисил для шкали.
     for i in range(1, num_scales):
-        num = i * (10 ** (len(str(max_num))- 1))
+        num = i * (10 ** (len(str(int(max_num))) - 1))
         scale.append(num)
     if len(new_numbers) == 0:
         return [scale, numbers]
     else:
         return [scale, new_numbers]
+
 
 class Attribute:
     def __init__(self, name, value, color):
@@ -54,7 +54,7 @@ class Attribute:
                 self.value.append(new_value[i])
 
     def __repr__(self):
-        return f'name: {self.name}.\nvalue: {self.value}.\ncolor: {self.color}.'
+        return f'[name: {self.name}.\nvalue: {self.value}.\ncolor: {self.color}.]'
 
 
 class Graph:
@@ -71,20 +71,17 @@ class Graph:
         self._height = height
         self._width = width
         self._attributes = attributes
-        self.special_list = create_scale(num_y , attributes[0].value)
         self.num_y = num_y
         self.num_x = num_x
         self._canvas = Canvas(master, bg="#ffffff",
                               width=width, height=height + 30)
-        self.create_graph()
+        self._create_graph()
 
-    def paint_scale(self, lengths: list[int, int],
+    def _paint_scale(self, lengths: list[int, int],
                     locations: list[list, list]):
-        global special_list
         canvas = self._canvas
         self._range_1 = lengths[1] / self.num_y
         # Накреслення шкали на вісі ординат.
-        print(self.special_list)
         for i in range(1, self.num_y):
             y = locations[1] - (self._range_1 * i)
             if y > 10:
@@ -96,7 +93,8 @@ class Graph:
                     canvas.create_line(
                         locations[0], y, self._width, y,
                         fill=f"black")
-                canvas.create_text(locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
+                canvas.create_text(
+                    locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
             else:
                 break
         # Накреслення шкали на вісі абсис.
@@ -121,7 +119,7 @@ class Graph:
             else:
                 break
 
-    def create_rectangle(self):
+    def _create_rectangle(self):
         y0 = self._height + 10
         x0 = 10
         range_1 = self._width / (len(self._attributes) + 1)
@@ -132,17 +130,17 @@ class Graph:
             self._canvas.create_text(
                 x + 60, y0, text=self._attributes[i].name)
 
-    def create_marks(self):
+    def _create_marks(self):
         """Розміщення об'єктів на графіку."""
         # Знаходження значень для побудування шкали.
         x0 = 20
         y0 = self._height - 20
         length_line_y = self._height - 30
         length_line_x = self._width - 30
-        self.paint_scale(
+        self._paint_scale(
             [length_line_x, length_line_y],
             [x0, y0])
-        self.create_rectangle()
+        self._create_rectangle()
         # Візуалізація даних.
         for attribute in self._attributes:
             y_coordinate = self.special_list[1]
@@ -176,7 +174,8 @@ class Graph:
                     else:
                         break
 
-    def create_graph(self):
+    def _create_graph(self):
+        self.special_list = create_scale(self.num_y, self._attributes[0].value)
         # Довжини кордиатних прямих.
         height = self._height - 20
         width = self._width - 10
@@ -192,7 +191,7 @@ class Graph:
         # Початок кординат.
         canvas.create_oval(19, height + 1, 22, height - 2,
                            fill="black")
-        self.create_marks()
+        self._create_marks()
 
     def place(self, x, y):
         self._canvas.place(x=x, y=y)
@@ -200,13 +199,12 @@ class Graph:
     def pack(self):
         self._canvas.place(x=10, y=20)
 
-    def update(self, *new_attribute, clear=False,  x=10, y=20):
-        if clear:
-            self._canvas.destroy()
-            self._canvas = Canvas(self.master, bg="#ffffff",
-                                  width=self._width, height=self._height + 30)
+    def update(self, *new_attribute, x=10, y=20):
+        self._canvas.destroy()
+        self._canvas = Canvas(self.master, bg="#ffffff",
+                              width=self._width, height=self._height + 30)
         self._attributes = new_attribute
-        self.create_graph()
+        self._create_graph()
         self.place(x, y)
 
     def __repr__(self):
@@ -227,13 +225,13 @@ class Graph_Сomparable(Graph):
                  attribute: Attribute):
         super().__init__(master, width, height, 0, num_y, attribute)
 
-    def create_marks(self):
+    def _create_marks(self):
         # Початкові кординати точок.
         attribute = self._attributes[0]
         x0 = 20
         y0 = self._height - 20
         length_line_x = self._width - 30
-        self.paint_scale_y([x0, y0])
+        self._paint_scale_y([x0, y0])
         # Накреслення поріваняльних прямокутників.
         y_coordinate = self.special_list[1]
         x0 = 40
@@ -253,12 +251,13 @@ class Graph_Сomparable(Graph):
                 break
 
     def update(self, new_attribute, x=10, y=20):
+
         self._canvas.destroy()
         self._attributes = new_attribute
-        self.create_graph()
+        self._create_graph()
         self.place(x, y)
 
-    def paint_scale_y(self, locations):
+    def _paint_scale_y(self, locations):
         # Значення для накреслення шкали.
         canvas = self._canvas
         length_line_y = self._height - 30
@@ -271,7 +270,58 @@ class Graph_Сomparable(Graph):
                                    locations[0] - 5, y)
                 canvas.create_line(locations[0], y,
                                    locations[0] + 5, y)
-                canvas.create_text(locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
+                canvas.create_text(
+                    locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
             else:
                 break
- 
+
+
+class Graph_Oval:
+
+    def __init__(self, window, width, height, x=10, y=40, color="#ffffff"):
+        self.window = window
+        self.width = width
+        self.height = height
+        self.color = color
+        self.canvas = Canvas(window, width=width, height=height + 30, bg=color)
+        self.canvas.place(x=x, y=y)
+
+    def create_part_ovals(self, scale=40, extents=[25, 25, 25, 25]):
+        # Основні зміні для строрення круга.
+        CONST = 129600
+        start = 0
+        x0 = self.width / 2
+        y0 = self.height / 2
+        self.__attributes = []
+        scale *= 2
+        # Створення і оформлення секторів (частин круга).
+        for i in range(len(extents)):
+            color = mod.hex(random.randint(0, 255),
+                            random.randint(0, 255),
+                            random.randint(0, 255))
+            # Конвертація відцотка в градуси.
+            deg = (CONST * extents[i]) / 36000
+            self.canvas.create_arc(x0 - scale, y0 - scale, x0 + scale, y0 + scale, start=start,
+                                   extent=deg, fill=color)
+            self.__attributes.append(Attribute(i + 1, extents[i], color))
+            start += deg
+            if len(extents) - 1 == i and sum(extents) != 100:
+                deg = (CONST * (100 - sum(extents))) / 36000
+                self.canvas.create_arc(x0 - scale, y0 - scale, x0 + scale, y0 + scale, start=start,
+                                       extent=deg, fill="gray")
+        self.__create_rectangle()
+
+    def get_info(self):
+        return self.__attributes
+
+    def __create_rectangle(self):
+        y0 = self.height + 10
+        x0 = 10
+        range_1 = self.width / (len(self.__attributes) + 1)
+        # Розміщення і креслення прямокутників.
+        for i in range(len(self.__attributes)):
+            x = x0 + (range_1 * i)
+            self.canvas.create_rectangle(x, y0 + 3, x + 20, y0 - 3,
+                                         fill=self.__attributes[i].color)
+            self.canvas.create_text(
+                x + 30, y0, text=self.__attributes[i].name)
