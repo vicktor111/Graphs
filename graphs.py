@@ -1,5 +1,5 @@
 import random
-import module as mod
+import modules as mod
 from tkinter import Tk, Canvas
 
 
@@ -77,6 +77,14 @@ class Graph:
                               width=width, height=height + 30)
         self._create_graph()
 
+    def clear(self):
+        # Очистка полотна.
+        self._canvas.destroy()
+        self._attributes = []
+        self._canvas = Canvas(self.master, bg="#ffffff",
+                              width=self._width, height=self._height + 30)
+        self.place(self._x, self._y)
+
     def _paint_scale(self, lengths: list[int, int],
                     locations: list[list, list]):
         canvas = self._canvas
@@ -143,7 +151,7 @@ class Graph:
         self._create_rectangle()
         # Візуалізація даних.
         for attribute in self._attributes:
-            y_coordinate = self.special_list[1]
+            y_coordinate = create_scale(self.num_y, attribute.value)[1]
             if self.more_nums == False:
                 for i in range(len(y_coordinate) - 1):
                     if x0 + (self._range_1 * i) < length_line_x:
@@ -194,18 +202,23 @@ class Graph:
         self._create_marks()
 
     def place(self, x, y):
+        self._x = x
+        self._y = y
         self._canvas.place(x=x, y=y)
 
     def pack(self):
         self._canvas.place(x=10, y=20)
 
-    def update(self, *new_attribute, x=10, y=20):
+    def update(self, *new_attribute, x=None, y=None):
         self._canvas.destroy()
         self._canvas = Canvas(self.master, bg="#ffffff",
                               width=self._width, height=self._height + 30)
-        self._attributes = new_attribute
+        self._attributes =new_attribute
         self._create_graph()
-        self.place(x, y)
+        if x != None and y != None:
+            self._x = x
+            self._y = y
+        self.place(self._x, self._y)
 
     def __repr__(self):
         text = ''
@@ -250,12 +263,23 @@ class Graph_Сomparable(Graph):
             else:
                 break
 
-    def update(self, new_attribute, x=10, y=20):
-
+    def update(self, *new_attribute, x=None, y=None):
+        # Очистка поля.
         self._canvas.destroy()
-        self._attributes = new_attribute
+        self._canvas = Canvas(self.master, bg="#ffffff",
+                              width=self._width, height=self._height + 30)
+        # Заповнення списка атрибутів.
+        if len(self._attributes) == 0:
+            self._attributes.append(Attribute([], [], []))              
+        for i in range(len(new_attribute)):
+            self._attributes[0].name.append(new_attribute[i].name)
+            self._attributes[0].color.append(new_attribute[i].color)
+            self._attributes[0].set_value(new_attribute[i].value)
         self._create_graph()
-        self.place(x, y)
+        if x != None and y != None:
+            self._x = x
+            self._y = y
+        self.place(self._x, self._y)
 
     def _paint_scale_y(self, locations):
         # Значення для накреслення шкали.
@@ -294,6 +318,7 @@ class Graph_Oval:
         y0 = self.height / 2
         self.__attributes = []
         scale *= 2
+        self.scale = scale
         # Створення і оформлення секторів (частин круга).
         for i in range(len(extents)):
             color = mod.hex(random.randint(0, 255),
@@ -309,10 +334,22 @@ class Graph_Oval:
                 deg = (CONST * (100 - sum(extents))) / 36000
                 self.canvas.create_arc(x0 - scale, y0 - scale, x0 + scale, y0 + scale, start=start,
                                        extent=deg, fill="gray")
+            self.__extents = extents
         self.__create_rectangle()
 
     def get_info(self):
         return self.__attributes
+
+    def update(self, new_value):
+        self.canvas.destroy()
+        self.canvas = Canvas(self.window, width=self.width,
+                            height=self.height + 30, 
+                            bg=self.color)
+        extents =[]
+        for i in range(len(new_value)):
+            extents.append(new_value)
+        self.create_part_ovals(self.scale, extents)
+        
 
     def __create_rectangle(self):
         y0 = self.height + 10
