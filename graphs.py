@@ -60,7 +60,7 @@ class Attribute:
 class Graph:
 
     def __init__(self, master, width, height, num_x, num_y,
-                 *attributes: list[Attribute],
+                 attributes: list[Attribute],
                  type_graph="normal",
                  more_nums=False):
         self._x = 10
@@ -85,45 +85,60 @@ class Graph:
                               width=self._width, height=self._height + 30)
         self.place(self._x, self._y)
 
-    def _paint_scale(self, lengths: list[int, int],
-                    locations: list[list, list]):
+    def _paint_scale(self, lengths: list[int, int],):
         canvas = self._canvas
         self._range_1 = lengths[1] / self.num_y
         # Накреслення шкали на вісі ординат.
         for i in range(1, self.num_y):
-            y = locations[1] - (self._range_1 * i)
-            if y > 10:
-                canvas.create_line(locations[0], y,
-                                   locations[0] - 5, y)
-                canvas.create_line(locations[0], y,
-                                   locations[0] + 5, y)
-                if self.type_graph == "with lines":
-                    canvas.create_line(
-                        locations[0], y, self._width, y,
-                        fill=f"black")
-                canvas.create_text(
-                    locations[0] - 10, y, text=f"{self.special_list[0][i - 1]}")
-            else:
-                break
+                y = self._y0 - (self._range_1 * i)
+                if y > 10:
+                    canvas.create_line(self._x0, y,
+                                    self._x0 - 5, y)
+                    canvas.create_line(self._x0, y,
+                                    self._x0 + 5, y)
+                    if self.type_graph == "with lines":
+                        canvas.create_line(
+                            self._x0, y, self._width, y,
+                            fill=f"black")
+                    canvas.create_text(
+                        self._x0 - 10, y, text=f"{self.special_list[0][i - 1]}")
+                else:
+                    break
+        if not self._negative_numbers:
+            for i in range(1, self.num_y):
+                y = self._y0 + (self._range_1 * i)
+                if y < (self._height - 10):
+                    canvas.create_line(self._x0, y,
+                                    self._x0 - 5, y)
+                    canvas.create_line(self._x0, y,
+                                    self._x0 + 5, y)
+                    if self.type_graph == "with lines":
+                        canvas.create_line(
+                            self._x0, y, self._width, y,
+                            fill=f"black")
+                    canvas.create_text(
+                        self._x0 - 10, y, text=f"-{self.special_list[0][i - 1]}")
+                else:
+                    break
         # Накреслення шкали на вісі абсис.
         special_num = create_num_float(self.num_x)
         for i in range(1, self.num_x):
             if self.more_nums == False:
-                x = locations[0] + (self._range_1 * i)
+                x = self._x0 + (self._range_1 * i)
             else:
                 range_1 = 13
-                x = locations[0] + (range_1 * i)
+                x = self._x0 + (range_1 * i)
             # Накреслення самих ліній.
-            if x < lengths[0]:
-                canvas.create_line(x, locations[1], x,
-                                   locations[1] - 5)
-                canvas.create_line(x, locations[1], x,
-                                   locations[1] + 5)
+            if x < self._x0:
+                canvas.create_line(x, self._y0, x,
+                                   self._y0 - 5)
+                canvas.create_line(x, self._y0, x,
+                                   self._y0 + 5)
                 if self.more_nums == True:
-                    canvas.create_text(x, locations[1] + 10, text=f"{next(special_num)}",
+                    canvas.create_text(x, self._y0 + 10, text=f"{next(special_num)}",
                                        font=('Helvetica 5 bold'))
                 else:
-                    canvas.create_text(x, locations[1] + 10, text=f"{i}")
+                    canvas.create_text(x, self._y0 + 10, text=f"{i}")
             else:
                 break
 
@@ -141,37 +156,34 @@ class Graph:
     def _create_marks(self):
         """Розміщення об'єктів на графіку."""
         # Знаходження значень для побудування шкали.
-        x0 = 20
-        y0 = self._height - 20
         length_line_y = self._height - 30
         length_line_x = self._width - 30
         self._paint_scale(
-            [length_line_x, length_line_y],
-            [x0, y0])
+            [length_line_x, length_line_y])
         self._create_rectangle()
         # Візуалізація даних.
         for attribute in self._attributes:
             y_coordinate = create_scale(self.num_y, attribute.value)[1]
             if self.more_nums == False:
                 for i in range(len(y_coordinate) - 1):
-                    if x0 + (self._range_1 * i) < length_line_x:
+                    if self._x0 + (self._range_1 * i) < length_line_x:
                         # Накреслення ліній.
                         self._canvas.create_line(
-                            x0 + (self._range_1 * i),
-                            y0 - (self._range_1 * y_coordinate[i]),
-                            x0 + (self._range_1 * (i + 1)),
-                            y0 - (self._range_1 * y_coordinate[i + 1]),
+                            self._x0 + (self._range_1 * i),
+                            self._y0 - (self._range_1 * y_coordinate[i]),
+                            self._x0 + (self._range_1 * (i + 1)),
+                            self._y0 - (self._range_1 * y_coordinate[i + 1]),
                             fill=attribute.color)
                     else:
                         break
             else:
                 # Початкові кординати точок.
                 range_2 = 13
-                x = x0
+                x = self._x0
                 # Розміщення точок на кординатній площині.
                 for i in range(len(y_coordinate)):
                     x += 1 * range_2
-                    y = y0 - (self._range_1 * y_coordinate[i])
+                    y = self._y0 - (self._range_1 * y_coordinate[i])
                     if x < length_line_x:
                         self._canvas.create_oval(
                             x - 2,
@@ -184,21 +196,43 @@ class Graph:
 
     def _create_graph(self):
         self.special_list = create_scale(self.num_y, self._attributes[0].value)
-        # Довжини кордиатних прямих.
-        height = self._height - 20
-        width = self._width - 10
-        canvas = self._canvas
-        # Накреслення кордиатної прямої y.
-        canvas.create_line(20, 10, 20, height, fill="black")
-        canvas.create_line(20, 10, 25, 15)
-        canvas.create_line(20, 10, 15, 15)
-        # Накреслення кордиатної прямої x.
-        canvas.create_line(20, height, width, height, fill="black")
-        canvas.create_line(width, height, width - 6, height - 6)
-        canvas.create_line(width, height, width - 6, height + 6)
-        # Початок кординат.
-        canvas.create_oval(19, height + 1, 22, height - 2,
-                           fill="black")
+        self._negative_numbers = min(self.special_list[1]) > 0
+        if self._negative_numbers:
+            self._x0 = 20
+            self._y0 = self._height - 20
+            # Довжини кордиатних прямих.
+            height = self._height - 20
+            width = self._width - 10
+            # Накреслення кордиатної прямої y.
+            self._canvas.create_line(self._x0, 10, self._x0, height, fill="black")
+            self._canvas.create_line(self._x0, 10, 25, 15)
+            self._canvas.create_line(self._x0, 10, 15, 15)
+            # Накреслення кордиатної прямої x.
+            self._canvas.create_line(20, height, width, height, fill="black")
+            self._canvas.create_line(width, height, width - 6, height - 6)
+            self._canvas.create_line(width, height, width - 6, height + 6)
+            # Початок кординат.
+            self._canvas.create_oval(19, height + 1, 22, height - 2,
+                            fill="black")
+        else:
+            self._x0 = 20
+            self._y0 = (self._height - 20) / 2
+            # Довжини кордиатних прямих.
+            width = self._width - 10
+            # Накреслення кордиатної прямої y.
+            self._canvas.create_line(self._x0, 10, self._x0, self._y0, fill="black")
+            self._canvas.create_line(self._x0, 10, 25, 15)
+            self._canvas.create_line(self._x0, 10, 15, 15)
+            self._canvas.create_line(self._x0, self._y0, self._x0, self._height - 10)
+            self._canvas.create_line(self._x0, self._height - 10, 25, self._height - 15)
+            self._canvas.create_line(self._x0, self._height - 10, 15, self._height - 15)
+            # Накреслення кордиатної прямої x.
+            self._canvas.create_line(self._x0, self._y0, width, self._y0, fill="black")
+            self._canvas.create_line(width, self._y0, width - 6, self._y0 - 6)
+            self._canvas.create_line(width, self._y0, width - 6, self._y0 + 6)
+            # Початок кординат.
+            self._canvas.create_oval(self._x0 - 1, self._y0 + 1, self._x0 + 2, self._y0 - 2,
+                            fill="black")
         self._create_marks()
 
     def place(self, x, y):
@@ -209,11 +243,15 @@ class Graph:
     def pack(self):
         self._canvas.place(x=10, y=20)
 
-    def update(self, *new_attribute, x=None, y=None):
+    def update(self, new_attribute, x=None, y=None):
         self._canvas.destroy()
         self._canvas = Canvas(self.master, bg="#ffffff",
                               width=self._width, height=self._height + 30)
-        self._attributes =new_attribute
+        if type(new_attribute) == type(Attribute):
+            self._attributes.append(new_attribute)
+        else:
+            for attribute in new_attribute:
+                self._attributes.append(attribute)
         self._create_graph()
         if x != None and y != None:
             self._x = x
@@ -238,6 +276,25 @@ class Graph_Сomparable(Graph):
                  attribute: Attribute):
         super().__init__(master, width, height, 0, num_y, attribute)
 
+    def _create_graph(self):
+        self.special_list = create_scale(self.num_y, self._attributes[0].value)
+        # Довжини кордиатних прямих.
+        height = self._height - 20
+        width = self._width - 10
+        canvas = self._canvas
+        # Накреслення кордиатної прямої y.
+        canvas.create_line(20, 10, 20, height, fill="black")
+        canvas.create_line(20, 10, 25, 15)
+        canvas.create_line(20, 10, 15, 15)
+        # Накреслення кордиатної прямої x.
+        canvas.create_line(20, height, width, height, fill="black")
+        canvas.create_line(width, height, width - 6, height - 6)
+        canvas.create_line(width, height, width - 6, height + 6)
+        # Початок кординат.
+        canvas.create_oval(19, height + 1, 22, height - 2,
+                           fill="black")
+        self._create_marks()
+
     def _create_marks(self):
         # Початкові кординати точок.
         attribute = self._attributes[0]
@@ -249,7 +306,7 @@ class Graph_Сomparable(Graph):
         y_coordinate = self.special_list[1]
         x0 = 40
         for i in range(len(y_coordinate)):
-            if x0 + (self._range_1 * i) < length_line_x:
+            if x0 + (80 * i) < length_line_x:
                 # Накреслиння квадратів.
                 x = x0 + (80 * i)
                 self._canvas.create_rectangle(
@@ -307,6 +364,8 @@ class Graph_Oval:
         self.width = width
         self.height = height
         self.color = color
+        self.x = x
+        self.y = y
         self.canvas = Canvas(window, width=width, height=height + 30, bg=color)
         self.canvas.place(x=x, y=y)
 
@@ -318,23 +377,30 @@ class Graph_Oval:
         y0 = self.height / 2
         self.__attributes = []
         scale *= 2
-        self.scale = scale
+        if (scale + y0) < self.height:
+            self.scale = scale
+        else:
+            self.scale = 130
         # Створення і оформлення секторів (частин круга).
-        for i in range(len(extents)):
-            color = mod.hex(random.randint(0, 255),
-                            random.randint(0, 255),
-                            random.randint(0, 255))
-            # Конвертація відцотка в градуси.
-            deg = (CONST * extents[i]) / 36000
-            self.canvas.create_arc(x0 - scale, y0 - scale, x0 + scale, y0 + scale, start=start,
-                                   extent=deg, fill=color)
-            self.__attributes.append(Attribute(i + 1, extents[i], color))
-            start += deg
-            if len(extents) - 1 == i and sum(extents) != 100:
-                deg = (CONST * (100 - sum(extents))) / 36000
-                self.canvas.create_arc(x0 - scale, y0 - scale, x0 + scale, y0 + scale, start=start,
+        if sum(extents) <= 100:
+            for i in range(len(extents)):
+                color = mod.hex(random.randint(0, 255),
+                                random.randint(0, 255),
+                                random.randint(0, 255))
+                # Конвертація відцотка в градуси.
+                deg = (CONST * extents[i]) / 36000
+                
+                self.canvas.create_arc(x0 - self.scale, y0 - self.scale, x0 + self.scale, y0 + self.scale, start=start,
+                                       extent=deg, fill=color)
+                self.__attributes.append(Attribute(i + 1, extents[i], color))
+                start += deg
+                if len(extents) - 1 == i and sum(extents) != 100:
+                    deg = (CONST * (100 - sum(extents))) / 36000
+                    self.canvas.create_arc(x0 - self.scale, y0 - self.scale, x0 + self.scale, y0 + self.scale, start=start,
                                        extent=deg, fill="gray")
-            self.__extents = extents
+                self.__extents = extents
+        else:
+            raise ValueError("long number,\nsum(extents) == 100.")
         self.__create_rectangle()
 
     def get_info(self):
@@ -345,9 +411,10 @@ class Graph_Oval:
         self.canvas = Canvas(self.window, width=self.width,
                             height=self.height + 30, 
                             bg=self.color)
+        self.canvas.place(x=self.x, y=self.y)
         extents =[]
         for i in range(len(new_value)):
-            extents.append(new_value)
+            extents.append(new_value[i])
         self.create_part_ovals(self.scale, extents)
         
 
